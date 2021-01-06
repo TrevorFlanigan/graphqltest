@@ -10,6 +10,11 @@
       "StackName": "amplify-graphqltestclient-dev-112850",
       "StackId": "arn:aws:cloudformation:us-east-1:609336482033:stack/amplify-graphqltestclient-dev-112850/6a8a1a90-5055-11eb-aca0-0a2b860127a1",
       "AmplifyAppId": "d1kqzp7mv4kymw"
+    },
+    "categories": {
+      "auth": {
+        "graphqltestclient6a46bedb": {}
+      }
     }
   }
 }

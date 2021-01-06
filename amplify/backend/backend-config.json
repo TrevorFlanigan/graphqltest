@@ -16,5 +16,13 @@
         }
       }
     }
+  },
+  "auth": {
+    "graphqltestclient6a46bedb": {
+      "service": "Cognito",
+      "providerPlugin": "awscloudformation",
+      "dependsOn": [],
+      "customAuth": false
+    }
   }
 }
