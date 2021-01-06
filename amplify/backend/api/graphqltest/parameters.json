@@ -1,5 +1,11 @@
 {
   "AppSyncApiName": "graphqltest",
   "DynamoDBBillingMode": "PAY_PER_REQUEST",
-  "DynamoDBEnableServerSideEncryption": false
+  "DynamoDBEnableServerSideEncryption": false,
+  "AuthCognitoUserPoolId": {
+    "Fn::GetAtt": [
+      "authgraphqltestclient6a46bedb",
+      "Outputs.UserPoolId"
+    ]
+  }
 }
