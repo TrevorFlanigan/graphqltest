@@ -9,7 +9,7 @@ import bg from "../assets/bg.svg";
 import { CircularProgress } from "@material-ui/core";
 
 function App() {
-  const [notes, setNotes] = useState([]);
+  const [posts, setNotes] = useState([]);
   const [user, setUser] = useState({});
 
   const [loading, setLoading] = useState(true);
@@ -25,7 +25,7 @@ function App() {
   }, []);
 
   async function deleteNote({ id }) {
-    const newNotesArray = notes.filter((note) => note.id !== id);
+    const newNotesArray = posts.filter((note) => note.id !== id);
     setNotes(newNotesArray);
     let res = await API.graphql({
       query: deletePostMutation,
@@ -63,13 +63,13 @@ function App() {
           backgroundImage: `url(${bg})`,
         }}
       >
-        <Header notes={notes} setNotes={setNotes} />
+        <Header notes={posts} setNotes={setNotes} />
         <CircularProgress />
       </div>
     );
   }
 
-  if (!loading && !notes.length) {
+  if (!loading && !posts.length) {
     return (
       <div
         style={{
@@ -83,7 +83,7 @@ function App() {
           backgroundImage: `url(${bg})`,
         }}
       >
-        <Header notes={notes} setNotes={setNotes} />
+        <Header notes={posts} setNotes={setNotes} />
         <h2>There's nothing here!</h2>
       </div>
     );
@@ -102,7 +102,7 @@ function App() {
         backgroundImage: `url(${bg})`,
       }}
     >
-      <Header notes={notes} setNotes={setNotes} />
+      <Header notes={posts} setNotes={setNotes} />
 
       <div
         style={{
@@ -119,22 +119,15 @@ function App() {
           minWidth: "400px",
         }}
       >
-        {notes.map((note, index) => (
-          <div key={note.id || note.name}>
-            <h2>{note.name}</h2>
-            <p>{note.description}</p>
-            <p>Posted by: {note.owner}</p>
-            {note.owner === user.username && (
-              <button onClick={() => deleteNote(note)}>Delete note</button>
-            )}
-            {note.image && <img src={note.image} style={{ width: 400 }} />}
-          </div>
-          // <Post
-          //   key={index}
-          //   caption={note.caption}
-          //   image={note.image}
-          //   author={note.owner}
-          // />
+        {posts.map((post, index) => (
+          <Post
+            key={index}
+            username={user.username}
+            caption={post.caption}
+            image={post.image}
+            author={post.owner}
+            deletePost={() => deleteNote(post)}
+          />
         ))}
       </div>
       {/* <AmplifySignOut /> */}

@@ -7,7 +7,7 @@ import {
   Button,
 } from "@material-ui/core";
 import { createPost as createPostMutation } from "../graphql/mutations";
-import { API, Storage } from "aws-amplify";
+import { API, Storage, Auth } from "aws-amplify";
 import { useState } from "react";
 
 const initialFormState = { caption: "", imageFile: [], image: "" };
@@ -41,7 +41,10 @@ const CreatePostModal = ({ modalIn, setModalIn, notes, setNotes }) => {
 
     console.log(res.data);
 
-    setNotes([...notes, formData]);
+    let acc = await Auth.currentUserInfo();
+    formData.owner = acc.username;
+
+    setNotes([formData, ...notes]);
     setFormData(initialFormState);
     setModalIn(false);
   }
