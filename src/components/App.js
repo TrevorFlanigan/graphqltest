@@ -1,30 +1,39 @@
 import React, { useState, useEffect } from "react";
-import { API, Storage } from "aws-amplify";
+import { API, Storage, Auth } from "aws-amplify";
 import { withAuthenticator, AmplifySignOut } from "@aws-amplify/ui-react";
 import { listNotes } from "../graphql/queries";
-import {
-  createNote as createNoteMutation,
-  deleteNote as deleteNoteMutation,
-} from "../graphql/mutations";
-
-const initialFormState = { name: "", description: "" };
+import { deleteNote as deleteNoteMutation } from "../graphql/mutations";
+import Header from "./Header";
+import Post from "./Post";
+import bg from "../assets/bg.svg";
+import { CircularProgress } from "@material-ui/core";
 
 function App() {
   const [notes, setNotes] = useState([]);
-  const [formData, setFormData] = useState(initialFormState);
+  const [user, setUser] = useState({});
 
-  async function onChange(e) {
-    if (!e.target.files[0]) return;
-    const file = e.target.files[0];
-    setFormData({ ...formData, image: file.name });
-    await Storage.put(file.name, file);
-    fetchNotes();
-  }
-
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
-    fetchNotes();
+    const loadAll = async () => {
+      let user = await Auth.currentUserInfo();
+      console.log("Current User: ", user);
+      setUser(user);
+      fetchNotes();
+      setLoading(false);
+    };
+    loadAll();
   }, []);
 
+  async function deleteNote({ id }) {
+    const newNotesArray = notes.filter((note) => note.id !== id);
+    setNotes(newNotesArray);
+    let res = await API.graphql({
+      query: deleteNoteMutation,
+      variables: { input: { id } },
+    });
+
+    console.log(res);
+  }
   async function fetchNotes() {
     const apiData = await API.graphql({ query: listNotes });
     const notesFromAPI = apiData.data.listNotes.items;
@@ -40,62 +49,95 @@ function App() {
     setNotes(apiData.data.listNotes.items);
   }
 
-  async function createNote() {
-    if (!formData.name || !formData.description) return;
-    let res = await API.graphql({
-      query: createNoteMutation,
-      variables: { input: formData },
-    });
-    if (formData.image) {
-      const image = await Storage.get(formData.image);
-      formData.image = image;
-    }
-
-    console.log(res.data);
-
-    setNotes([...notes, formData]);
-    setFormData(initialFormState);
+  if (loading) {
+    return (
+      <div
+        style={{
+          height: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          flex: "1 0 100%",
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundSize: "cover",
+          backgroundImage: `url(${bg})`,
+        }}
+      >
+        <Header notes={notes} setNotes={setNotes} />
+        <CircularProgress />
+      </div>
+    );
   }
 
-  async function deleteNote({ id }) {
-    const newNotesArray = notes.filter((note) => note.id !== id);
-    setNotes(newNotesArray);
-    let res = await API.graphql({
-      query: deleteNoteMutation,
-      variables: { input: { id } },
-    });
-
-    console.log(res);
+  if (!loading && !notes.length) {
+    return (
+      <div
+        style={{
+          height: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          flex: "1 0 100%",
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundSize: "cover",
+          backgroundImage: `url(${bg})`,
+        }}
+      >
+        <Header notes={notes} setNotes={setNotes} />
+        <h2>There's nothing here!</h2>
+      </div>
+    );
   }
 
   return (
-    <div className="App">
-      <h1>Finstagram</h1>
-      <input
-        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-        placeholder="Note name"
-        value={formData.name}
-      />
-      <input type="file" onChange={onChange} />
-      <input
-        onChange={(e) =>
-          setFormData({ ...formData, description: e.target.value })
-        }
-        placeholder="Note description"
-        value={formData.description}
-      />
-      <button onClick={createNote}>Create Note</button>
-      <div style={{ marginBottom: 30 }}>
-        {notes.map((note) => (
+    <div
+      style={{
+        height: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        flex: "1 0 100%",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundSize: "cover",
+        backgroundImage: `url(${bg})`,
+      }}
+    >
+      <Header notes={notes} setNotes={setNotes} />
+
+      <div
+        style={{
+          marginBottom: 30,
+          maxHeight: "700px",
+          overflow: "scroll",
+          border: "2px solid grey",
+          borderRadius: 10,
+          width: "50%",
+          maxWidth: "500px",
+          alignItems: "center",
+          flexDirection: "column",
+          display: "flex",
+          minWidth: "400px",
+        }}
+      >
+        {notes.map((note, index) => (
           <div key={note.id || note.name}>
             <h2>{note.name}</h2>
             <p>{note.description}</p>
-            <button onClick={() => deleteNote(note)}>Delete note</button>
+            <p>Posted by: {note.owner}</p>
+            {note.owner === user.username && (
+              <button onClick={() => deleteNote(note)}>Delete note</button>
+            )}
             {note.image && <img src={note.image} style={{ width: 400 }} />}
           </div>
+          // <Post
+          //   key={index}
+          //   caption={note.caption}
+          //   image={note.image}
+          //   author={note.owner}
+          // />
         ))}
       </div>
-      <AmplifySignOut />
+      {/* <AmplifySignOut /> */}
     </div>
   );
 }
