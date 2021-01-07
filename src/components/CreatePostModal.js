@@ -6,29 +6,32 @@ import {
   TextField,
   Button,
 } from "@material-ui/core";
-import {
-  createNote as createNoteMutation,
-  deleteNote as deleteNoteMutation,
-} from "../graphql/mutations";
+import { createPost as createPostMutation } from "../graphql/mutations";
 import { API, Storage } from "aws-amplify";
 import { useState } from "react";
 
-const initialFormState = { caption: "" };
+const initialFormState = { caption: "", imageFile: [], image: "" };
 
 const CreatePostModal = ({ modalIn, setModalIn, notes, setNotes }) => {
   const [formData, setFormData] = useState(initialFormState);
 
   async function onChange(e) {
+    console.log("file");
     if (!e.target.files[0]) return;
     const file = e.target.files[0];
     setFormData({ ...formData, image: file.name, imageFile: file });
+    console.log(formData.imageFile);
   }
 
   async function createNote() {
     if (!formData.caption || !formData.image) return;
+    let cloned = {};
+    Object.assign(cloned, formData);
+    console.log(cloned);
+    delete cloned.imageFile;
     let res = await API.graphql({
-      query: createNoteMutation,
-      variables: { input: formData },
+      query: createPostMutation,
+      variables: { input: cloned },
     });
     if (formData.image) {
       await Storage.put(formData.image, formData.imageFile);
@@ -40,6 +43,7 @@ const CreatePostModal = ({ modalIn, setModalIn, notes, setNotes }) => {
 
     setNotes([...notes, formData]);
     setFormData(initialFormState);
+    setModalIn(false);
   }
 
   return (

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { API, Storage, Auth } from "aws-amplify";
 import { withAuthenticator, AmplifySignOut } from "@aws-amplify/ui-react";
-import { listNotes } from "../graphql/queries";
-import { deleteNote as deleteNoteMutation } from "../graphql/mutations";
+import { listPosts } from "../graphql/queries";
+import { deletePost as deletePostMutation } from "../graphql/mutations";
 import Header from "./Header";
 import Post from "./Post";
 import bg from "../assets/bg.svg";
@@ -28,15 +28,15 @@ function App() {
     const newNotesArray = notes.filter((note) => note.id !== id);
     setNotes(newNotesArray);
     let res = await API.graphql({
-      query: deleteNoteMutation,
+      query: deletePostMutation,
       variables: { input: { id } },
     });
 
     console.log(res);
   }
   async function fetchNotes() {
-    const apiData = await API.graphql({ query: listNotes });
-    const notesFromAPI = apiData.data.listNotes.items;
+    const apiData = await API.graphql({ query: listPosts });
+    const notesFromAPI = apiData.data.listPosts.items;
     await Promise.all(
       notesFromAPI.map(async (note) => {
         if (note.image) {
@@ -46,7 +46,7 @@ function App() {
         return note;
       })
     );
-    setNotes(apiData.data.listNotes.items);
+    setNotes(apiData.data.listPosts.items);
   }
 
   if (loading) {
